@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>DeployWatch | Kubernetes Dashboard</title>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+    <div class="max-w-7xl mx-auto p-6">
+
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">
+                    <span class="text-cyan-400">Deploy</span>Watch
+                </h1>
+                <p class="text-slate-400 mt-1">Kubernetes Deployment Overview</p>
+            </div>
+            <span class="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm">
+                ● Demo View
+            </span>
+        </header>
+
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <p class="text-slate-400 text-sm">Total Deployments</p>
+                <h2 class="text-4xl font-bold mt-3">3</h2>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <p class="text-slate-400 text-sm">Healthy</p>
+                <h2 class="text-4xl font-bold text-emerald-400 mt-3">2</h2>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                <p class="text-slate-400 text-sm">Unhealthy</p>
+                <h2 class="text-4xl font-bold text-rose-400 mt-3">1</h2>
+            </div>
+        </section>
+
+        <section class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="p-6 border-b border-slate-800">
+                <h2 class="text-xl font-semibold">Deployments</h2>
+                <p class="text-sm text-slate-400 mt-1">Workload status and replica information</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-800/60 text-slate-400">
+                        <tr>
+                            <th class="p-4">Deployment</th>
+                            <th class="p-4">Namespace</th>
+                            <th class="p-4">Image</th>
+                            <th class="p-4">Replicas</th>
+                            <th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800">
+                        <tr>
+                            <td class="p-4 font-medium">two-tier-app</td>
+                            <td class="p-4 text-slate-400">two-tier-ns</td>
+                            <td class="p-4 text-slate-400">flask-attendance-app:latest</td>
+                            <td class="p-4">1/1</td>
+                            <td class="p-4"><span class="text-emerald-400">● Healthy</span></td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-medium">mysql</td>
+                            <td class="p-4 text-slate-400">two-tier-ns</td>
+                            <td class="p-4 text-slate-400">mysql:8.0</td>
+                            <td class="p-4">1/1</td>
+                            <td class="p-4"><span class="text-emerald-400">● Healthy</span></td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-medium">payment-api</td>
+                            <td class="p-4 text-slate-400">demo-apps</td>
+                            <td class="p-4 text-slate-400">payment-api:v1</td>
+                            <td class="p-4">0/1</td>
+                            <td class="p-4"><span class="text-rose-400">● Unhealthy</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer class="text-center text-slate-500 text-xs mt-8">
+            DeployWatch · Kubernetes Workload Dashboard
+        </footer>
+    </div>
+</body>
+</html>
