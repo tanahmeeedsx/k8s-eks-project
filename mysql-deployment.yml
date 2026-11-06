@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:latest
+          image: mysql:8.0
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -28,10 +28,10 @@ spec:
               value: "attendance_db"
           ports:
             - containerPort: 3306
-      #     volumeMounts:
-      #       - name: mysql-initdb
-      #         mountPath: docker-entrypoint-initdb.d
-      # volumes:
-      #   - name: mysql-initdb
-      #     configMap:
-      #       name: mysql-initdb-config    # Config name
+          volumeMounts:
+            - name: mysql-initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-initdb
+          configMap:
+            name: mysql-initdb-config

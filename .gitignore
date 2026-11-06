@@ -1,0 +1,14 @@
+# Kubernetes secrets and environment files
+mysql-secrets.yml
+*.secret.yaml
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# System
+.DS_Store

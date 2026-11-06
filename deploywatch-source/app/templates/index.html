@@ -1,89 +1,284 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>DeployWatch | Kubernetes Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeployWatch | Kubernetes Control Center</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+  --bg:#171717; --panel:#262626; --border:#404040;
+  --text:#fafafa; --muted:#a3a3a3;
+  --accent:#f59e0b; --accent-soft:rgba(245,158,11,.12);
+}
+body.light {
+  --bg:#f5f5f4; --panel:#ffffff; --border:#e7e5e4;
+  --text:#171717; --muted:#78716c;
+  --accent:#d97706; --accent-soft:rgba(217,119,6,.10);
+}
+body {background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+.panel {background:var(--panel);border:1px solid var(--border);border-radius:13px}
+.muted {color:var(--muted)}
+.accent {color:var(--accent)}
+.nav-btn {width:100%;text-align:left;padding:11px 14px;border-radius:8px;color:var(--muted);transition:.2s}
+.nav-btn:hover,.nav-btn.active {background:var(--accent-soft);color:var(--accent)}
+.action {background:var(--accent);color:#171717;padding:9px 14px;border-radius:8px;font-weight:700}
+.action:hover {filter:brightness(1.1)}
+input,select {background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px}
+th {color:var(--muted);font-weight:500;text-align:left;padding:13px}
+td {padding:14px;border-top:1px solid var(--border)}
+tr.clickable {cursor:pointer}
+tr.clickable:hover {background:var(--accent-soft)}
+.badge {padding:4px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.good {background:#10b98120;color:#10b981}
+.warn {background:#f59e0b20;color:#f59e0b}
+.bad {background:#ef444420;color:#ef4444}
+.section {display:none}
+.section.active {display:block}
+.modal-bg {position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+.modal-bg.show {display:flex}
+.modal {background:var(--panel);border:1px solid var(--border);border-radius:15px;width:100%;max-width:650px;max-height:85vh;overflow:auto;padding:24px}
+.metric {font-size:32px;font-weight:750;margin-top:12px}
+</style>
 </head>
+<body>
+<div class="min-h-screen flex">
+<aside class="w-60 hidden md:flex flex-col p-5 border-r" style="border-color:var(--border)">
+  <div class="text-2xl font-extrabold mb-2"><span class="accent">Deploy</span>Watch</div>
+  <p class="text-xs muted mb-10">KUBERNETES CONTROL CENTER</p>
+  <p class="text-xs muted uppercase mb-3">Workspace</p>
+  <nav class="space-y-2">
+    <button class="nav-btn active" data-page="overview">◫ &nbsp; Overview</button>
+    <button class="nav-btn" data-page="deployments">▤ &nbsp; Deployments</button>
+    <button class="nav-btn" data-page="pods">◈ &nbsp; Pods</button>
+    <button class="nav-btn" data-page="events">◷ &nbsp; Cluster Events</button>
+  </nav>
+  <div class="mt-auto panel p-4">
+    <p class="text-xs muted">MONITORING</p>
+    <p class="text-sm font-semibold mt-2">Live Kubernetes data</p>
+    <p class="text-xs muted mt-1">Read-only access</p>
+  </div>
+</aside>
 
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-    <div class="max-w-7xl mx-auto p-6">
+<main class="flex-1 min-w-0 p-4 md:p-8">
+<header class="flex flex-wrap items-center justify-between gap-4 mb-8">
+  <div>
+    <h1 class="text-2xl font-bold" id="pageTitle">Cluster Overview</h1>
+    <p class="muted text-sm mt-1">Monitor your Kubernetes workloads</p>
+  </div>
+  <div class="flex flex-wrap gap-2 items-center">
+    <span id="connection" class="badge warn">● Connecting</span>
+    <button id="themeBtn" class="panel px-3 py-2 text-sm">☀ / ☾</button>
+    <button id="refreshBtn" class="action">↻ Refresh</button>
+  </div>
+</header>
 
-        <header class="flex justify-between items-center mb-10">
-            <div>
-                <h1 class="text-3xl font-bold tracking-tight">
-                    <span class="text-cyan-400">Deploy</span>Watch
-                </h1>
-                <p class="text-slate-400 mt-1">Kubernetes Deployment Overview</p>
-            </div>
-            <span class="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full text-sm">
-                ● Demo View
-            </span>
-        </header>
+<div class="md:hidden flex gap-2 overflow-x-auto mb-6">
+  <button class="nav-btn active" data-page="overview">Overview</button>
+  <button class="nav-btn" data-page="deployments">Deployments</button>
+  <button class="nav-btn" data-page="pods">Pods</button>
+  <button class="nav-btn" data-page="events">Events</button>
+</div>
 
-        <section class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <p class="text-slate-400 text-sm">Total Deployments</p>
-                <h2 class="text-4xl font-bold mt-3">3</h2>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <p class="text-slate-400 text-sm">Healthy</p>
-                <h2 class="text-4xl font-bold text-emerald-400 mt-3">2</h2>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-                <p class="text-slate-400 text-sm">Unhealthy</p>
-                <h2 class="text-4xl font-bold text-rose-400 mt-3">1</h2>
-            </div>
-        </section>
+<section id="overview" class="section active">
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+    <div class="panel p-5"><p class="muted text-sm">Deployments</p><div class="metric" id="totalDeployments">—</div><p class="muted text-xs mt-2">Total workloads</p></div>
+    <div class="panel p-5"><p class="muted text-sm">Healthy</p><div class="metric text-emerald-500" id="healthy">—</div><p class="muted text-xs mt-2">Ready deployments</p></div>
+    <div class="panel p-5"><p class="muted text-sm">Unhealthy</p><div class="metric text-red-500" id="unhealthy">—</div><p class="muted text-xs mt-2">Needs attention</p></div>
+    <div class="panel p-5"><p class="muted text-sm">Namespaces</p><div class="metric accent" id="namespaceCount">—</div><p class="muted text-xs mt-2">Cluster namespaces</p></div>
+  </div>
 
-        <section class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-            <div class="p-6 border-b border-slate-800">
-                <h2 class="text-xl font-semibold">Deployments</h2>
-                <p class="text-sm text-slate-400 mt-1">Workload status and replica information</p>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-800/60 text-slate-400">
-                        <tr>
-                            <th class="p-4">Deployment</th>
-                            <th class="p-4">Namespace</th>
-                            <th class="p-4">Image</th>
-                            <th class="p-4">Replicas</th>
-                            <th class="p-4">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800">
-                        <tr>
-                            <td class="p-4 font-medium">two-tier-app</td>
-                            <td class="p-4 text-slate-400">two-tier-ns</td>
-                            <td class="p-4 text-slate-400">flask-attendance-app:latest</td>
-                            <td class="p-4">1/1</td>
-                            <td class="p-4"><span class="text-emerald-400">● Healthy</span></td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 font-medium">mysql</td>
-                            <td class="p-4 text-slate-400">two-tier-ns</td>
-                            <td class="p-4 text-slate-400">mysql:8.0</td>
-                            <td class="p-4">1/1</td>
-                            <td class="p-4"><span class="text-emerald-400">● Healthy</span></td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 font-medium">payment-api</td>
-                            <td class="p-4 text-slate-400">demo-apps</td>
-                            <td class="p-4 text-slate-400">payment-api:v1</td>
-                            <td class="p-4">0/1</td>
-                            <td class="p-4"><span class="text-rose-400">● Unhealthy</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <footer class="text-center text-slate-500 text-xs mt-8">
-            DeployWatch · Kubernetes Workload Dashboard
-        </footer>
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+    <div class="panel p-5 xl:col-span-2">
+      <h2 class="font-semibold mb-5">Pod Status Overview</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div><p class="muted text-xs">Total Pods</p><p class="metric" id="totalPods">—</p></div>
+        <div><p class="muted text-xs">Running</p><p class="metric text-emerald-500" id="runningPods">—</p></div>
+        <div><p class="muted text-xs">Pending</p><p class="metric accent" id="pendingPods">—</p></div>
+        <div><p class="muted text-xs">Failed</p><p class="metric text-red-500" id="failedPods">—</p></div>
+      </div>
     </div>
+    <div class="panel p-5">
+      <h2 class="font-semibold mb-3">Cluster Health</h2>
+      <div class="text-3xl font-bold accent" id="healthPercent">—</div>
+      <div class="w-full rounded-full h-2 mt-4" style="background:var(--border)"><div id="healthBar" class="h-2 rounded-full" style="background:var(--accent);width:0%"></div></div>
+      <p class="muted text-xs mt-3">Based on ready deployments</p>
+    </div>
+  </div>
+
+  <div class="panel p-5">
+    <div class="flex justify-between items-center mb-4">
+      <div><h2 class="font-semibold">Recent Cluster Events</h2><p class="muted text-xs mt-1">Latest Kubernetes events</p></div>
+      <button class="accent text-sm" data-page="events">View all →</button>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr><th>Type</th><th>Reason</th><th>Object</th><th>Namespace</th><th>Message</th></tr></thead><tbody id="recentEvents"></tbody></table></div>
+  </div>
+</section>
+
+<section id="deployments" class="section">
+  <div class="panel p-5">
+    <div class="flex flex-wrap justify-between gap-3 mb-5">
+      <div><h2 class="font-semibold text-lg">Deployment Explorer</h2><p class="muted text-sm">Inspect live workloads and replica health</p></div>
+      <div class="flex flex-wrap gap-2">
+        <input id="deploymentSearch" placeholder="Search deployment...">
+        <select id="deploymentNamespace"><option value="all">All namespaces</option></select>
+      </div>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr><th>Deployment</th><th>Namespace</th><th>Image</th><th>Replicas</th><th>Status</th></tr></thead><tbody id="deploymentRows"></tbody></table></div>
+    <p class="muted text-xs mt-4">Select a deployment row to view details.</p>
+  </div>
+</section>
+
+<section id="pods" class="section">
+  <div class="panel p-5">
+    <div class="flex flex-wrap justify-between gap-3 mb-5">
+      <div><h2 class="font-semibold text-lg">Pod Explorer</h2><p class="muted text-sm">Inspect pod health, restarts and node information</p></div>
+      <div class="flex flex-wrap gap-2">
+        <input id="podSearch" placeholder="Search pod...">
+        <select id="podNamespace"><option value="all">All namespaces</option></select>
+      </div>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr><th>Pod</th><th>Namespace</th><th>Status</th><th>Restarts</th><th>Node</th></tr></thead><tbody id="podRows"></tbody></table></div>
+    <p class="muted text-xs mt-4">Select a pod row to view details.</p>
+  </div>
+</section>
+
+<section id="events" class="section">
+  <div class="panel p-5">
+    <div class="flex flex-wrap justify-between gap-3 mb-5">
+      <div><h2 class="font-semibold text-lg">Cluster Events</h2><p class="muted text-sm">Scheduling, image pull, rollout and warning events</p></div>
+      <select id="eventNamespace"><option value="all">All namespaces</option></select>
+    </div>
+    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr><th>Type</th><th>Reason</th><th>Object</th><th>Namespace</th><th>Count</th><th>Message</th></tr></thead><tbody id="eventRows"></tbody></table></div>
+  </div>
+</section>
+
+<div class="flex flex-wrap justify-between gap-3 mt-8 text-xs muted">
+  <span>DeployWatch · Kubernetes Workload Dashboard</span>
+  <label class="flex items-center gap-2"><input type="checkbox" id="autoRefresh" checked> Auto-refresh every 30 seconds</label>
+  <span id="lastUpdated">Waiting for data...</span>
+</div>
+<div id="errorBox" class="hidden mt-4 p-4 rounded-lg text-sm" style="background:#ef444420;color:#ef4444"></div>
+</main>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <div class="flex justify-between items-center mb-5"><h2 class="text-lg font-bold" id="modalTitle">Details</h2><button id="closeModal" class="text-xl muted">✕</button></div>
+    <div id="modalContent" class="space-y-3 text-sm"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let deployments=[], pods=[], events=[], namespaces=[];
+let timer=null;
+
+function escapeHtml(value) {
+  return String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function badge(status) {
+  const s=String(status||'Unknown');
+  const cls=s==='Healthy'||s==='Running'||s==='Normal'?'good':s==='Pending'||s==='Warning'?'warn':'bad';
+  return `<span class="badge ${cls}">${escapeHtml(s)}</span>`;
+}
+async function api(url) {
+  const response=await fetch(url,{cache:'no-store'});
+  const data=await response.json();
+  if(!response.ok) throw new Error(data.error||`HTTP ${response.status}`);
+  return data;
+}
+function fillNamespaces() {
+  ['deploymentNamespace','podNamespace','eventNamespace'].forEach(id=>{
+    const el=$(id), old=el.value||'all';
+    el.innerHTML='<option value="all">All namespaces</option>'+namespaces.map(n=>`<option value="${escapeHtml(n.name)}">${escapeHtml(n.name)}</option>`).join('');
+    el.value=namespaces.some(n=>n.name===old)?old:'all';
+  });
+}
+function renderDeployments() {
+  const search=$('deploymentSearch').value.toLowerCase();
+  const ns=$('deploymentNamespace').value;
+  const list=deployments.filter(d=>(ns==='all'||d.namespace===ns)&&(!search||d.name.toLowerCase().includes(search)));
+  $('deploymentRows').innerHTML=list.length?list.map((d,i)=>`<tr class="clickable" data-deployment="${i}"><td class="font-semibold">${escapeHtml(d.name)}</td><td>${escapeHtml(d.namespace)}</td><td class="muted">${escapeHtml((d.images||[]).join(', '))}</td><td>${d.ready_replicas}/${d.desired_replicas}</td><td>${badge(d.status)}</td></tr>`).join(''):'<tr><td colspan="5" class="muted">No deployments found.</td></tr>';
+  [...$('deploymentRows').querySelectorAll('tr[data-deployment]')].forEach(row=>row.onclick=()=>showDetails('Deployment',list[Number(row.dataset.deployment)]));
+}
+function renderPods() {
+  const search=$('podSearch').value.toLowerCase(),ns=$('podNamespace').value;
+  const list=pods.filter(p=>(ns==='all'||p.namespace===ns)&&(!search||p.name.toLowerCase().includes(search)));
+  $('podRows').innerHTML=list.length?list.map((p,i)=>`<tr class="clickable" data-pod="${i}"><td class="font-semibold">${escapeHtml(p.name)}</td><td>${escapeHtml(p.namespace)}</td><td>${badge(p.status)}</td><td>${p.restarts}</td><td>${escapeHtml(p.node)}</td></tr>`).join(''):'<tr><td colspan="5" class="muted">No pods found.</td></tr>';
+  [...$('podRows').querySelectorAll('tr[data-pod]')].forEach(row=>row.onclick=()=>showDetails('Pod',list[Number(row.dataset.pod)]));
+}
+function renderEvents() {
+  const ns=$('eventNamespace').value;
+  const list=events.filter(e=>ns==='all'||e.namespace===ns);
+  const rows=list.slice(0,100);
+  const html=rows.map(e=>`<tr><td>${badge(e.type)}</td><td class="font-semibold">${escapeHtml(e.reason)}</td><td>${escapeHtml(e.object)}</td><td>${escapeHtml(e.namespace)}</td>${$('eventRows')===null?'':`<td>${e.count||1}</td>`}<td class="muted">${escapeHtml(e.message)}</td></tr>`).join('');
+  $('eventRows').innerHTML=html||'<tr><td colspan="6" class="muted">No events found.</td></tr>';
+  $('recentEvents').innerHTML=rows.slice(0,5).map(e=>`<tr><td>${badge(e.type)}</td><td>${escapeHtml(e.reason)}</td><td>${escapeHtml(e.object)}</td><td>${escapeHtml(e.namespace)}</td><td class="muted">${escapeHtml(e.message)}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">No recent events.</td></tr>';
+}
+function showDetails(type,obj) {
+  $('modalTitle').textContent=type+' Details';
+  $('modalContent').innerHTML=Object.entries(obj).map(([k,v])=>`<div class="flex flex-col sm:flex-row sm:justify-between gap-1 border-b pb-2" style="border-color:var(--border)"><span class="muted capitalize">${escapeHtml(k.replaceAll('_',' '))}</span><span class="text-right break-all">${escapeHtml(Array.isArray(v)?v.join(', '):v)}</span></div>`).join('');
+  $('modal').classList.add('show');
+}
+async function refreshAll() {
+  $('refreshBtn').disabled=true;$('refreshBtn').textContent='↻ Loading...';
+  $('errorBox').classList.add('hidden');
+  try {
+    const [overview,d,e,p,n]=await Promise.all([
+      api('/api/cluster/overview'),api('/api/deployments'),api('/api/events'),api('/api/pods'),api('/api/namespaces')
+    ]);
+    deployments=d.deployments||[];events=e.events||[];pods=p.pods||[];namespaces=n.namespaces||[];
+    const dep=overview.deployments||{}, pod=overview.pods||{};
+    $('totalDeployments').textContent=dep.total??0;
+    $('healthy').textContent=dep.healthy??0;
+    $('unhealthy').textContent=dep.unhealthy??0;
+    $('namespaceCount').textContent=overview.namespaces??0;
+    $('totalPods').textContent=pod.total??0;
+    $('runningPods').textContent=pod.running??0;
+    $('pendingPods').textContent=pod.pending??0;
+    $('failedPods').textContent=pod.failed??0;
+    const percent=dep.total?Math.round((dep.healthy/dep.total)*100):100;
+    $('healthPercent').textContent=percent+'%';
+    $('healthBar').style.width=percent+'%';
+    $('connection').textContent='● Cluster Connected';
+    $('connection').className='badge good';
+    fillNamespaces();renderDeployments();renderPods();renderEvents();
+    $('lastUpdated').textContent='Updated: '+new Date().toLocaleTimeString();
+  } catch(error) {
+    $('connection').textContent='● API Error';
+    $('connection').className='badge bad';
+    $('errorBox').textContent='Unable to load Kubernetes data: '+error.message;
+    $('errorBox').classList.remove('hidden');
+  } finally {
+    $('refreshBtn').disabled=false;$('refreshBtn').textContent='↻ Refresh';
+  }
+}
+function navigate(page) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===page));
+  document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  $('pageTitle').textContent={overview:'Cluster Overview',deployments:'Deployment Explorer',pods:'Pod Explorer',events:'Cluster Events'}[page];
+}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>navigate(b.dataset.page)));
+$('refreshBtn').addEventListener('click',refreshAll);
+$('closeModal').addEventListener('click',()=>$('modal').classList.remove('show'));
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').classList.remove('show')});
+$('deploymentSearch').addEventListener('input',renderDeployments);
+$('deploymentNamespace').addEventListener('change',renderDeployments);
+$('podSearch').addEventListener('input',renderPods);
+$('podNamespace').addEventListener('change',renderPods);
+$('eventNamespace').addEventListener('change',renderEvents);
+$('themeBtn').addEventListener('click',()=>{
+  document.body.classList.toggle('light');
+  localStorage.setItem('deploywatch-theme',document.body.classList.contains('light')?'light':'dark');
+});
+if(localStorage.getItem('deploywatch-theme')==='light')document.body.classList.add('light');
+$('autoRefresh').addEventListener('change',e=>{
+  if(timer)clearInterval(timer);
+  timer=e.target.checked?setInterval(refreshAll,30000):null;
+});
+timer=setInterval(refreshAll,30000);
+refreshAll();
+</script>
 </body>
 </html>

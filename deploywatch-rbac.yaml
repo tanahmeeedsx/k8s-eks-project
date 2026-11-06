@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: deploywatch-reader
+  namespace: two-tier-ns
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deploywatch-reader
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "namespaces", "events", "services"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: deploywatch-reader
+subjects:
+  - kind: ServiceAccount
+    name: deploywatch-reader
+    namespace: two-tier-ns
+roleRef:
+  kind: ClusterRole
+  name: deploywatch-reader
+  apiGroup: rbac.authorization.k8s.io

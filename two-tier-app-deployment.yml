@@ -15,21 +15,22 @@ spec:
       labels:
         app: two-tier-app
     spec:
+      serviceAccountName: deploywatch-reader
       containers:
         - name: two-tier-app
-          image: bongodev/flask-attendance-app:latest
+          image: doctanjim/deploywatch:v3
+          imagePullPolicy: Always
           env:
             - name: DB_HOST
-              value: mysql # this is your mysql's service clusture IP, Make sure to change it with yours
-            - name: DB_USER #according to database.py file and db.config
-              value: "root"
+              value: mysql
+            - name: DB_USER
+              value: root
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mysql-secret
                   key: MYSQL_ROOT_PASSWORD
             - name: DB_NAME
-              value: "attendance_db"
+              value: attendance_db
           ports:
             - containerPort: 5000
-          imagePullPolicy: Always
