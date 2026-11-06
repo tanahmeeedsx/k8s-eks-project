@@ -10,7 +10,7 @@
       "Condition": {
         "StringEquals": {
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "repo:tanahmeeedsx/k8s-eks-project:ref:refs/heads/main"
+          "token.actions.githubusercontent.com:sub": "repo:tanahmeeedsx@103332941/k8s-eks-project@1447056002:ref:refs/heads/main"
         }
       }
     }
